@@ -9,7 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#fbfbfd; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7;
-          --pass:#1a7f37; --reject:#c2410c; --review:#8a6d00; color-scheme: light; }
+          --pass:#1a7f37; --reject:#c2410c; --review:#8a6d00; color-scheme: light;
+          --ease-out: cubic-bezier(.2,.8,.2,1); }
   @media (prefers-color-scheme: dark) {
     :root { --bg:#0b0b0c; --card:#1c1c1e; --text:#f5f5f7; --muted:#a1a1a6; --line:#3a3a3c;
             --pass:#4ac26b; --reject:#ff8a50; --review:#e3b341; color-scheme: dark; } }
@@ -19,15 +20,82 @@
   main { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
   h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 600; letter-spacing: -0.5px; }
   .muted { color: var(--muted); }
-  .drop { border: 2px dashed var(--line); border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; background: var(--card); }
-  .drop.over { border-color: var(--text); }
-  .card { background: var(--card); border-radius: 20px; padding: 28px; display: none; flex-direction: column; gap: 20px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  /* Upload box */
+  .drop { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px;
+          border: 2px dashed var(--line); border-radius: 20px; padding: 40px 24px; text-align: center;
+          cursor: pointer; background: var(--card); -webkit-tap-highlight-color: transparent;
+          transition: border-color .2s ease-out, background-color .2s ease-out, scale .3s var(--ease-out); }
+  .drop:has(input:focus-visible) { outline: 2px solid var(--text); outline-offset: 4px; }
+  .drop:active { scale: .99; }
+  .drop.over { border-style: solid; border-color: var(--text); scale: 1.015;
+               background: color-mix(in oklch, var(--text) 5%, var(--card));
+    @media (prefers-reduced-motion: reduce) { scale: 1; } }
+  .drop[data-state=error] { border-color: var(--reject); }
+  .drop[data-state=error] .status { color: var(--reject); }
+  .drop.shake { animation: shake .4s cubic-bezier(.36,.07,.19,.97);
+    @media (prefers-reduced-motion: reduce) { animation: none; } }
+  @keyframes shake { 20%, 60% { translate: -6px 0; } 40%, 80% { translate: 6px 0; } }
+
+  .icon { color: var(--muted); transition: color .2s ease-out; }
+  .icon .arrow { transition: translate .3s var(--ease-out); }
+  @media (hover: hover) {
+    .drop:hover { border-color: var(--muted); }
+    .drop:hover .icon { color: var(--text); }
+    .drop:hover .icon .arrow { translate: 0 -3px; } }
+  .drop.over .icon { color: var(--text); }
+  .drop.over .icon .arrow { animation: nudge .7s ease-in-out infinite alternate;
+    @media (prefers-reduced-motion: reduce) { animation: none; translate: 0 -3px; } }
+  @keyframes nudge { from { translate: 0 0; } to { translate: 0 -6px; } }
+
+  .title { font-size: 17px; }
+  .drop .t-over, .drop.over .t-main { display: none; }
+  .drop.over .t-over { display: inline; }
+  .status { font-size: 14px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Preview + scanning effect while the model works */
+  .preview { display: none; position: relative; width: 148px; aspect-ratio: 1; border-radius: 14px; overflow: hidden; }
+  .drop.has-img .preview { display: block; }
+  .drop.has-img .icon { display: none; }
+  .preview img { display: block; width: 100%; height: 100%; object-fit: cover; transition: filter .3s ease-out; }
+  .preview.pop { animation: pop .35s var(--ease-out);
+    @media (prefers-reduced-motion: reduce) { animation: fade .2s ease-out; } }
+  @keyframes pop { from { opacity: 0; scale: .92; } }
+  @keyframes fade { from { opacity: 0; } }
+  .scan { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .2s ease-out; }
+  .scan::after { content: ''; position: absolute; inset: 0 0 auto; height: 30%; translate: 0 -100%;
+                 background: linear-gradient(to bottom, transparent, rgb(255 255 255 / .45) 90%, #fff); }
+  .drop[data-state=busy] .preview img { filter: saturate(.6) brightness(.8); }
+  .drop[data-state=busy] .scan { opacity: 1; }
+  .drop[data-state=busy] .scan::after { animation: sweep 1.5s cubic-bezier(.45,0,.55,1) infinite;
+    @media (prefers-reduced-motion: reduce) { animation: none; } }
+  .drop[data-state=busy] .scan { @media (prefers-reduced-motion: reduce) {
+    background: rgb(255 255 255 / .25); animation: breathe 1.2s ease-in-out infinite alternate; } }
+  @keyframes sweep { to { translate: 0 333%; } }
+  @keyframes breathe { from { opacity: .3; } }
+
+  /* Result */
+  .card { background: var(--card); border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 20px;
+          transition: opacity .3s ease-out; }
+  .card[hidden] { display: none; }
+  .card.stale { opacity: .45; }
+  .card.enter { animation: rise .5s var(--ease-out);
+    @media (prefers-reduced-motion: reduce) { animation: fade .3s ease-out; } }
+  .card.enter .decision { animation: pop .45s .1s var(--ease-out) both;
+    @media (prefers-reduced-motion: reduce) { animation: none; } }
+  @keyframes rise { from { opacity: 0; translate: 0 12px; } }
   .decision { font-size: 44px; font-weight: 600; }
   .imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .imgs img { width: 100%; border-radius: 14px; aspect-ratio: 1; object-fit: cover; }
+  .bars { display: flex; flex-direction: column; gap: 8px; }
   .bar { display: grid; grid-template-columns: 140px 1fr 60px; gap: 12px; align-items: center; font-size: 15px; }
+  .bar span:last-child { font-variant-numeric: tabular-nums; text-align: right; }
   .track { height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; }
-  .fill { height: 100%; background: var(--text); }
+  .fill { height: 100%; background: var(--text); transform-origin: left; scale: var(--v) 1;
+          animation: grow .8s calc(.15s + var(--i) * 60ms) var(--ease-out) both;
+    @media (prefers-reduced-motion: reduce) { animation: none; } }
+  @keyframes grow { from { scale: 0 1; } }
   @media (max-width: 560px) { .imgs { grid-template-columns: 1fr; } .bar { grid-template-columns: 110px 1fr 52px; } }
 </style>
 </head>
@@ -38,13 +106,19 @@
     <p class="muted">อัปโหลดรูปแอปเปิ้ล กล้วย หรือส้ม แล้วระบบจะบอกว่า ผ่าน หรือ ทิ้ง</p>
   </div>
 
-  <label class="drop" id="drop">
-    <input type="file" id="file" accept="image/*" hidden>
-    <p><b>เลือกรูป</b> หรือลากมาวางที่นี่</p>
-    <p class="muted" id="status">JPG / PNG ไม่เกิน 10 MB</p>
+  <label class="drop" id="drop" data-state="idle">
+    <input type="file" id="file" accept="image/*" class="sr-only">
+    <svg class="icon" viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M8 30v6a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4v-6"/>
+      <g class="arrow"><path d="M24 30V8"/><path d="M15 17l9-9 9 9"/></g>
+    </svg>
+    <div class="preview" id="preview"><img id="thumb" alt=""><span class="scan"></span></div>
+    <p class="title"><span class="t-main" id="title"><b>เลือกรูป</b> หรือลากมาวางที่นี่</span><span class="t-over"><b>ปล่อยเพื่อวิเคราะห์</b></span></p>
+    <p class="muted status" id="status" role="status">JPG / PNG ไม่เกิน 10 MB · วางรูปจากคลิปบอร์ดได้ (⌘/Ctrl+V)</p>
   </label>
 
-  <section class="card" id="result">
+  <section class="card" id="result" hidden>
     <div>
       <p class="decision" id="decision"></p>
       <p id="summary"></p>
@@ -53,40 +127,98 @@
       <figure><img id="orig" alt="รูปที่อัปโหลด"><figcaption class="muted">รูปที่อัปโหลด</figcaption></figure>
       <figure><img id="heat" alt="Grad-CAM heatmap"><figcaption class="muted">Grad-CAM: สีแดง = จุดที่โมเดลดูตอนตัดสินใจ</figcaption></figure>
     </div>
-    <div id="bars" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="bars" id="bars"></div>
   </section>
 </main>
 <script>
 const NAMES = {freshapples:'แอปเปิ้ลสด', freshbanana:'กล้วยสด', freshoranges:'ส้มสด',
                rottenapples:'แอปเปิ้ลเน่า', rottenbanana:'กล้วยเน่า', rottenoranges:'ส้มเน่า'};
 const DEC = {PASS:['ผ่าน','var(--pass)'], REJECT:['ทิ้ง','var(--reject)'], REVIEW:['ส่งให้พนักงานตรวจ','var(--review)']};
+const MAX_BYTES = 10 * 1024 * 1024;
 const $ = id => document.getElementById(id);
+const drop = $('drop'), card = $('result');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let controller, thumbUrl;
+
+// Restart a one-shot CSS animation class
+function replay(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+function setState(state, title, status) {
+  drop.dataset.state = state;
+  $('title').innerHTML = title;
+  $('status').textContent = status;
+}
+
+function fail(message) {
+  setState('error', '<b>ลองอีกครั้ง</b> — เลือกรูปหรือลากมาวาง', message);
+  replay(drop, 'shake');
+}
 
 async function send(file) {
   if (!file) return;
-  $('status').textContent = 'กำลังวิเคราะห์…';
-  $('orig').src = URL.createObjectURL(file);
-  const body = new FormData(); body.append('file', file);
+  if (!file.type.startsWith('image/')) return fail('ไฟล์นี้ไม่ใช่รูปภาพ');
+  if (file.size > MAX_BYTES) return fail('ไฟล์ใหญ่เกิน 10 MB');
+
+  controller?.abort();
+  controller = new AbortController();
+  if (thumbUrl) URL.revokeObjectURL(thumbUrl);
+  thumbUrl = URL.createObjectURL(file);
+  $('thumb').src = $('orig').src = thumbUrl;
+  drop.classList.add('has-img');
+  replay($('preview'), 'pop');
+  setState('busy', 'กำลังวิเคราะห์…', file.name);
+  card.classList.add('stale');
+
+  // Cloudflare containers sleep when idle, so the first request can take a while
+  const slow = setTimeout(() => { $('status').textContent = 'เซิร์ฟเวอร์กำลังเริ่มทำงาน อาจใช้เวลาสักครู่…'; }, 5000);
   try {
-    const res = await fetch('/predict', {method: 'POST', body});
-    const r = await res.json();
-    if (!res.ok) throw new Error(r.detail || 'เกิดข้อผิดพลาด');
-    const [word, color] = DEC[r.decision];
-    $('decision').textContent = word; $('decision').style.color = color;
-    $('summary').textContent = `${NAMES[r.label]} · มั่นใจ ${(r.confidence*100).toFixed(1)}%` +
-      (r.decision === 'REVIEW' ? ` (ต่ำกว่าเกณฑ์ ${(r.threshold*100).toFixed(0)}%)` : '');
-    $('heat').src = 'data:image/png;base64,' + r.heatmap_png;
-    $('bars').innerHTML = Object.entries(r.probabilities).sort((a,b) => b[1]-a[1]).map(([k,v]) =>
-      `<div class="bar"><span>${NAMES[k]}</span><div class="track"><div class="fill" style="width:${v*100}%"></div></div><span>${(v*100).toFixed(1)}%</span></div>`).join('');
-    $('result').style.display = 'flex';
-    $('status').textContent = 'เลือกรูปใหม่ได้เลย';
-  } catch (e) { $('status').textContent = e.message; }
+    const body = new FormData(); body.append('file', file);
+    const res = await fetch('/predict', {method: 'POST', body, signal: controller.signal});
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(r.detail || `เกิดข้อผิดพลาด (${res.status})`);
+    render(r);
+    setState('done', '<b>เลือกรูปใหม่</b> หรือลากมาวางที่นี่', file.name);
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    fail(e instanceof TypeError ? 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้' : e.message);
+  } finally {
+    clearTimeout(slow);
+  }
 }
-$('file').addEventListener('change', e => send(e.target.files[0]));
-const drop = $('drop');
-drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
-drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); send(e.dataTransfer.files[0]); });
+
+function render(r) {
+  const [word, color] = DEC[r.decision];
+  $('decision').textContent = word; $('decision').style.color = color;
+  $('summary').textContent = `${NAMES[r.label]} · มั่นใจ ${(r.confidence*100).toFixed(1)}%` +
+    (r.decision === 'REVIEW' ? ` (ต่ำกว่าเกณฑ์ ${(r.threshold*100).toFixed(0)}%)` : '');
+  $('heat').src = 'data:image/png;base64,' + r.heatmap_png;
+  $('bars').innerHTML = Object.entries(r.probabilities).sort((a,b) => b[1]-a[1]).map(([k,v], i) =>
+    `<div class="bar"><span>${NAMES[k]}</span><div class="track"><div class="fill" style="--v:${v};--i:${i}"></div></div><span>${(v*100).toFixed(1)}%</span></div>`).join('');
+  const firstTime = card.hidden;
+  card.hidden = false;
+  card.classList.remove('stale');
+  replay(card, 'enter');
+  if (firstTime) card.scrollIntoView({behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'nearest'});
+}
+
+$('file').addEventListener('change', e => { send(e.target.files[0]); e.target.value = ''; });
+
+// Accept files dropped anywhere on the page; the box lights up while dragging
+let dragDepth = 0;
+const hasFiles = e => e.dataTransfer?.types.includes('Files');
+addEventListener('dragenter', e => { if (hasFiles(e) && dragDepth++ === 0) drop.classList.add('over'); });
+addEventListener('dragleave', e => { if (hasFiles(e) && --dragDepth === 0) drop.classList.remove('over'); });
+addEventListener('dragover', e => { if (hasFiles(e)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } });
+addEventListener('drop', e => {
+  if (!hasFiles(e)) return;
+  e.preventDefault(); dragDepth = 0; drop.classList.remove('over');
+  send(e.dataTransfer.files[0]);
+});
+
+addEventListener('paste', e => {
+  const file = [...(e.clipboardData?.files || [])].find(f => f.type.startsWith('image/'));
+  if (file) send(file);
+});
 </script>
 </body>
 </html>
