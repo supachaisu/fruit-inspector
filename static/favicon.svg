@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .tile { fill: #1d1d1f; } .fruit { fill: #f5f5f7; } .stem { stroke: #f5f5f7; } .leaf { fill: #4ac26b; }
+    @media (prefers-color-scheme: dark) { .tile { fill: #f5f5f7; } .fruit { fill: #1d1d1f; } .stem { stroke: #1d1d1f; } .leaf { fill: #1a7f37; } }
+  </style>
+  <rect class="tile" width="64" height="64" rx="14"/>
+  <path class="fruit" d="M32 23c-4-3-10-4-14-1-6 4-7 13-4 21 3 8 8 13 12 13 2 0 4-1 6-2 2 1 4 2 6 2 4 0 9-5 12-13 3-8 2-17-4-21-4-3-10-2-14 1z"/>
+  <path class="stem" d="M32 23c0-4 1-7 3-9" fill="none" stroke-width="3" stroke-linecap="round"/>
+  <path class="leaf" d="M35 17c2-6 8-8 13-7-1 5-7 8-13 7z"/>
+</svg>

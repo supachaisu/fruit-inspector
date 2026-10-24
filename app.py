@@ -16,6 +16,16 @@ def index():
     return FileResponse('static/index.html')
 
 
+@app.get('/favicon.svg')
+def favicon():
+    return FileResponse('static/favicon.svg')
+
+
+@app.get('/apple-touch-icon.png')
+def apple_touch_icon():
+    return FileResponse('static/apple-touch-icon.png')
+
+
 @app.get('/health')
 def health():
     return {'status': 'ok', 'model': MODEL_PATH, 'threshold': THRESHOLD}
