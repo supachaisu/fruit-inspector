@@ -1,0 +1,64 @@
+{
+  "config": {
+    "data_root": null,
+    "img_size": 224,
+    "cache_size": 256,
+    "batch_size": 32,
+    "epochs": 20,
+    "patience": 5,
+    "seed": 42,
+    "weight_decay": 0.0001,
+    "dropout": 0.4,
+    "dedup_hamming": 0,
+    "val_folds": 7,
+    "num_workers": 2,
+    "quick": false
+  },
+  "device": "cuda",
+  "split_sizes": {
+    "train": 9333,
+    "val": 1568,
+    "test": 2698,
+    "clean_test": 2261
+  },
+  "duplicates": {
+    "images_in_duplicate_groups": 2462,
+    "pct_in_duplicate_groups": 18.1,
+    "unique_groups": 12230,
+    "test_images_with_near_duplicate_in_train": 437,
+    "pct_test_leaked": 16.2,
+    "images_in_mixed_class_groups": 4,
+    "largest_group": 5
+  },
+  "best_run": "adam_lr1e-3",
+  "results": [
+    {
+      "run": "adam_lr1e-3",
+      "epochs_run": 20,
+      "train_min": 9.8,
+      "best_val_loss": 0.145,
+      "test_acc": 0.9522,
+      "test_macroF1": 0.9529,
+      "test_rotten_recall": 0.9791,
+      "test_false_reject": 0.0292,
+      "clean_test_macroF1": 0.9509,
+      "clean_test_rotten_recall": 0.9756,
+      "params": 422566,
+      "ms_per_img": 1.02
+    },
+    {
+      "run": "sgdm_lr1e-2",
+      "epochs_run": 20,
+      "train_min": 9.5,
+      "best_val_loss": 0.1559,
+      "test_acc": 0.9537,
+      "test_macroF1": 0.9544,
+      "test_rotten_recall": 0.9804,
+      "test_false_reject": 0.0378,
+      "clean_test_macroF1": 0.9538,
+      "clean_test_rotten_recall": 0.9795,
+      "params": 422566,
+      "ms_per_img": 1.02
+    }
+  ]
+}
