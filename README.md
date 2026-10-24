@@ -24,7 +24,7 @@ Data: [Fruits fresh and rotten for classification](https://www.kaggle.com/datase
 
 | Folder | Contents |
 |---|---|
-| [`notebooks/`](notebooks/CS461_checkin_baseline.ipynb) | Training notebook — EDA, duplicate detection, Adam vs SGD+Momentum, evaluation. Runs on Kaggle or Colab GPU. |
+| [`notebooks/`](notebooks/CS461_checkin_baseline.ipynb) | Training notebook — EDA, duplicate detection, Adam vs SGD+Momentum, evaluation. Runs on Kaggle or Colab GPU. Also on Kaggle: [cs461-checkin-baseline](https://www.kaggle.com/code/supachaisuwanthip/cs461-checkin-baseline) |
 | [`results/`](results/) | Notebook outputs: [`results.json`](results/results.json), [`05_comparison.csv`](results/05_comparison.csv), training histories and charts |
 | [`webapp/`](webapp/) | FastAPI app with Grad-CAM, deployed on Cloudflare Workers + Containers — see [`webapp/README.md`](webapp/README.md) |
 | [`slides/`](slides/CS461_checkin.pdf) | Check-in presentation |

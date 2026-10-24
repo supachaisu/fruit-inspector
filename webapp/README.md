@@ -5,7 +5,7 @@ Upload a photo of an apple, banana or orange → **ผ่าน / ทิ้ง /
 ## Files
 | File | What it does |
 |---|---|
-| `adam_lr1e-3.pt` | Trained weights — copy from the Kaggle notebook's Output tab (`outputs/`) |
+| `adam_lr1e-3.pt` | Trained weights — copy from the [Kaggle notebook](https://www.kaggle.com/code/supachaisuwanthip/cs461-checkin-baseline)'s Output tab (`outputs/`) |
 | `model.py` | Same Custom CNN as the notebook + preprocessing + prediction + Grad-CAM |
 | `app.py` | FastAPI server: `GET /` page, `POST /predict` API, `GET /health` |
 | `static/index.html` | Upload page |
