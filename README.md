@@ -1,12 +1,3 @@
----
-title: Produce Quality Inspector
-emoji: 🍎
-colorFrom: gray
-colorTo: gray
-sdk: docker
-app_port: 7860
----
-
 # Automated Produce Quality Inspector — Web App
 
 Upload a photo of an apple, banana or orange → **ผ่าน / ทิ้ง / ส่งให้พนักงานตรวจ** + confidence + Grad-CAM heatmap.
@@ -18,7 +9,9 @@ Upload a photo of an apple, banana or orange → **ผ่าน / ทิ้ง /
 | `model.py` | Same Custom CNN as the notebook + preprocessing + prediction + Grad-CAM |
 | `app.py` | FastAPI server: `GET /` page, `POST /predict` API, `GET /health` |
 | `static/index.html` | Upload page |
-| `Dockerfile` | For Hugging Face Spaces (or any Docker host) |
+| `Dockerfile` | Container image for the FastAPI app (port 7860) |
+| `src/index.ts` | Cloudflare Worker that forwards requests to the container |
+| `wrangler.jsonc` | Cloudflare Workers + Containers config |
 
 ## Run on your computer
 ```bash
@@ -28,9 +21,18 @@ uvicorn app:app --reload
 # open http://127.0.0.1:8000
 ```
 
+## Deploy to Cloudflare
+```bash
+npm install
+npm run deploy   # wrangler deploy — builds the Dockerfile and deploys the Worker + container
+npm run logs     # wrangler tail
+```
+
 ## Settings (environment variables)
 - `MODEL_PATH` — weights file (default `adam_lr1e-3.pt`)
 - `THRESHOLD` — confidence below this → "ส่งให้พนักงานตรวจ" (default `0.80`)
+
+On Cloudflare these are set in `envVars` in `src/index.ts`.
 
 ## API
 ```bash
