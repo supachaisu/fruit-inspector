@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fruit-inspector",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+
+  // The FastAPI app runs in this container (built from ./Dockerfile)
+  "containers": [
+    {
+      "class_name": "FruitApp",
+      "image": "./Dockerfile",
+      "instance_type": "basic",   // 1/4 vCPU, 1 GiB RAM — enough for the 1.7 MB model
+      "max_instances": 2
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "FRUIT_APP", "class_name": "FruitApp" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["FruitApp"] }]
+}

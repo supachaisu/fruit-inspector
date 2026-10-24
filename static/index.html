@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Produce Quality Inspector</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#fbfbfd; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7;
+          --pass:#1a7f37; --reject:#c2410c; --review:#8a6d00; color-scheme: light; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0b0b0c; --card:#1c1c1e; --text:#f5f5f7; --muted:#a1a1a6; --line:#3a3a3c;
+            --pass:#4ac26b; --reject:#ff8a50; --review:#e3b341; color-scheme: dark; } }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans Thai', 'Noto Sans', system-ui, sans-serif;
+         padding: 48px 20px; line-height: 1.5; }
+  main { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+  h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 600; letter-spacing: -0.5px; }
+  .muted { color: var(--muted); }
+  .drop { border: 2px dashed var(--line); border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; background: var(--card); }
+  .drop.over { border-color: var(--text); }
+  .card { background: var(--card); border-radius: 20px; padding: 28px; display: none; flex-direction: column; gap: 20px; }
+  .decision { font-size: 44px; font-weight: 600; }
+  .imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .imgs img { width: 100%; border-radius: 14px; aspect-ratio: 1; object-fit: cover; }
+  .bar { display: grid; grid-template-columns: 140px 1fr 60px; gap: 12px; align-items: center; font-size: 15px; }
+  .track { height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; }
+  .fill { height: 100%; background: var(--text); }
+  @media (max-width: 560px) { .imgs { grid-template-columns: 1fr; } .bar { grid-template-columns: 110px 1fr 52px; } }
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <h1>Produce Quality Inspector</h1>
+    <p class="muted">อัปโหลดรูปแอปเปิ้ล กล้วย หรือส้ม แล้วระบบจะบอกว่า ผ่าน หรือ ทิ้ง</p>
+  </div>
+
+  <label class="drop" id="drop">
+    <input type="file" id="file" accept="image/*" hidden>
+    <p><b>เลือกรูป</b> หรือลากมาวางที่นี่</p>
+    <p class="muted" id="status">JPG / PNG ไม่เกิน 10 MB</p>
+  </label>
+
+  <section class="card" id="result">
+    <div>
+      <p class="decision" id="decision"></p>
+      <p id="summary"></p>
+    </div>
+    <div class="imgs">
+      <figure><img id="orig" alt="รูปที่อัปโหลด"><figcaption class="muted">รูปที่อัปโหลด</figcaption></figure>
+      <figure><img id="heat" alt="Grad-CAM heatmap"><figcaption class="muted">Grad-CAM: สีแดง = จุดที่โมเดลดูตอนตัดสินใจ</figcaption></figure>
+    </div>
+    <div id="bars" style="display:flex;flex-direction:column;gap:8px"></div>
+  </section>
+</main>
+<script>
+const NAMES = {freshapples:'แอปเปิ้ลสด', freshbanana:'กล้วยสด', freshoranges:'ส้มสด',
+               rottenapples:'แอปเปิ้ลเน่า', rottenbanana:'กล้วยเน่า', rottenoranges:'ส้มเน่า'};
+const DEC = {PASS:['ผ่าน','var(--pass)'], REJECT:['ทิ้ง','var(--reject)'], REVIEW:['ส่งให้พนักงานตรวจ','var(--review)']};
+const $ = id => document.getElementById(id);
+
+async function send(file) {
+  if (!file) return;
+  $('status').textContent = 'กำลังวิเคราะห์…';
+  $('orig').src = URL.createObjectURL(file);
+  const body = new FormData(); body.append('file', file);
+  try {
+    const res = await fetch('/predict', {method: 'POST', body});
+    const r = await res.json();
+    if (!res.ok) throw new Error(r.detail || 'เกิดข้อผิดพลาด');
+    const [word, color] = DEC[r.decision];
+    $('decision').textContent = word; $('decision').style.color = color;
+    $('summary').textContent = `${NAMES[r.label]} · มั่นใจ ${(r.confidence*100).toFixed(1)}%` +
+      (r.decision === 'REVIEW' ? ` (ต่ำกว่าเกณฑ์ ${(r.threshold*100).toFixed(0)}%)` : '');
+    $('heat').src = 'data:image/png;base64,' + r.heatmap_png;
+    $('bars').innerHTML = Object.entries(r.probabilities).sort((a,b) => b[1]-a[1]).map(([k,v]) =>
+      `<div class="bar"><span>${NAMES[k]}</span><div class="track"><div class="fill" style="width:${v*100}%"></div></div><span>${(v*100).toFixed(1)}%</span></div>`).join('');
+    $('result').style.display = 'flex';
+    $('status').textContent = 'เลือกรูปใหม่ได้เลย';
+  } catch (e) { $('status').textContent = e.message; }
+}
+$('file').addEventListener('change', e => send(e.target.files[0]));
+const drop = $('drop');
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); send(e.dataTransfer.files[0]); });
+</script>
+</body>
+</html>

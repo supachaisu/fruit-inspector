@@ -1,0 +1,8 @@
+node_modules
+src
+.wrangler
+wrangler.jsonc
+package.json
+package-lock.json
+__pycache__
+*.zip
