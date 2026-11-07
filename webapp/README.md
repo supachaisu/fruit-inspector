@@ -5,7 +5,7 @@ Upload a photo of an apple, banana or orange → **ผ่าน / ทิ้ง /
 ## Files
 | File | What it does |
 |---|---|
-| `adam_lr1e-3.pt` | Trained weights — copy from the [Kaggle notebook](https://www.kaggle.com/code/supachaisuwanthip/cs461-checkin-baseline)'s Output tab (`outputs/`) |
+| `best_model.pt` | Trained weights (Adam lr 3e-3 + cosine) — copy from the [Kaggle notebook](https://www.kaggle.com/code/supachaisuwanthip/cs461-final)'s Output tab (`outputs/`) |
 | `model.py` | Same Custom CNN as the notebook + preprocessing + prediction + Grad-CAM |
 | `app.py` | FastAPI server: `GET /` page, `POST /predict` and `POST /predict/multi` APIs, `GET /health` |
 | `fusion.py` | Combines the per-photo results of 1–3 cameras into one verdict (`worst` / `mean`) |
@@ -31,7 +31,7 @@ npm run logs     # wrangler tail
 ```
 
 ## Settings (environment variables)
-- `MODEL_PATH` — weights file (default `adam_lr1e-3.pt`)
+- `MODEL_PATH` — weights file (default `best_model.pt`)
 - `THRESHOLD` — confidence below this → "ส่งให้พนักงานตรวจ" (default `0.80`)
 
 On Cloudflare these are set in `envVars` in `src/index.ts`.

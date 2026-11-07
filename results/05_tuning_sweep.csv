@@ -1,0 +1,13 @@
+run,optimizer,lr,schedule,baseline,epochs_run,best_val_loss,val_acc_at_best,val_f1_at_best,train_min
+adam_lr3e-4,Adam,0.0003,const,False,20,0.1134,0.9664,0.9648,8.8097
+adam_lr3e-4_cos,Adam,0.0003,cos,False,20,0.1009,0.9696,0.9690,8.7337
+adam_lr1e-3,Adam,0.0010,const,True,20,0.1186,0.9541,0.9540,8.6425
+adam_lr1e-3_cos,Adam,0.0010,cos,False,20,0.0759,0.9741,0.9732,8.6660
+adam_lr3e-3,Adam,0.0030,const,False,20,0.1581,0.9470,0.9459,8.7191
+adam_lr3e-3_cos,Adam,0.0030,cos,False,20,0.0754,0.9793,0.9779,8.6447
+sgdm_lr3e-3,SGD+Momentum,0.0030,const,False,20,0.1446,0.9515,0.9506,8.6095
+sgdm_lr3e-3_cos,SGD+Momentum,0.0030,cos,False,20,0.1389,0.9521,0.9513,8.6790
+sgdm_lr1e-2,SGD+Momentum,0.0100,const,True,20,0.1406,0.9541,0.9535,8.5745
+sgdm_lr1e-2_cos,SGD+Momentum,0.0100,cos,False,20,0.1109,0.9580,0.9570,8.5993
+sgdm_lr3e-2,SGD+Momentum,0.0300,const,False,20,0.1293,0.9625,0.9611,8.5375
+sgdm_lr3e-2_cos,SGD+Momentum,0.0300,cos,False,20,0.1135,0.9592,0.9582,8.6836

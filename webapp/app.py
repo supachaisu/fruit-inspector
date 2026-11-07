@@ -6,7 +6,7 @@ from PIL import Image, UnidentifiedImageError
 from fusion import fuse
 from model import load_model, predict
 
-MODEL_PATH = os.getenv('MODEL_PATH', 'adam_lr1e-3.pt')    # weights file from the Kaggle Output tab
+MODEL_PATH = os.getenv('MODEL_PATH', 'best_model.pt')     # weights file from the Kaggle Output tab
 THRESHOLD = float(os.getenv('THRESHOLD', '0.80'))         # below this confidence → send to a person
 MAX_BYTES = 10 * 1024 * 1024
 MAX_VIEWS = 3                                             # cameras photographing the same fruit

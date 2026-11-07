@@ -1,0 +1,5 @@
+optimizer,stage,run,lr,schedule,best_val_loss,clean_acc,clean_macroF1,clean_rotten_recall,clean_false_reject,params,ms_per_img
+Adam,baseline,adam_lr1e-3,0.001,const,0.1186,0.9558,0.9574,0.9826,0.0383,422566,1.72
+Adam,tuned,adam_lr3e-3_cos,0.003,cos,0.0754,0.9704,0.9709,0.9834,0.0272,422566,1.11
+SGD+Momentum,baseline,sgdm_lr1e-2,0.010,const,0.1406,0.9513,0.9522,0.9748,0.0332,422566,1.13
+SGD+Momentum,tuned,sgdm_lr1e-2_cos,0.010,cos,0.1109,0.9544,0.9552,0.9724,0.0292,422566,1.12
