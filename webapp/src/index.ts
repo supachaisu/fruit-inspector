@@ -5,7 +5,7 @@ export class FruitApp extends Container {
   defaultPort = 7860;      // uvicorn listens here (Dockerfile CMD)
   sleepAfter = "10m";      // go to sleep after 10 minutes with no visitors → no cost while idle
   envVars = {
-    MODEL_PATH: "adam_lr1e-3.pt",
+    MODEL_PATH: "best_model.pt",
     THRESHOLD: "0.80",     // below this confidence → "ส่งให้พนักงานตรวจ"
   };
 }
